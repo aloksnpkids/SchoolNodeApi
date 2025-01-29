@@ -1,0 +1,13 @@
+{
+    "username": "root",
+    "password": "",
+    "database": "snpkids_school_api",
+    "host": "localhost",
+    "dialect": "mysql",
+    "JWT_PRIVATE_KEY": "e8c35f7f8b6eace80a57ab50ae87bb",
+    "X_AUTH_TOKEN":"d5aae097fd654299a1643e1c654e1d",
+    "APP_URL": "https://beta.test.io/",
+    "environment": "development"
+  }
+  
+  

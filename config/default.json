@@ -1,0 +1,19 @@
+{
+    "username": "root",
+    "password": "",
+    "database": "snpkids_school_api",
+    "host": "localhost",
+    "dialect": "mysql",
+    "JWT_PRIVATE_KEY": "secret",
+    "JWT_PRIVATE_REFRESH_KEY": "secret_refresh",
+    "AWS_ACCESS_KEY_ID": "AKIAY6N7PIIVON4S",
+    "AWS_SECRET_ACCESS_KEY": "pFwivKfeMsRGoR9xPjYSEOb1eN/yb9luRfAV",
+    "AWS_S3_ACCESS_KEY_ID": "AKIAY6N7CPIIVON4S",
+    "AWS_S3_SECRET_ACCESS_KEY": "pFwivKzfeMsRGoR9xPjYSEOb1eN/yb9luRfAV",
+    "AWS_ACCESS_KEY_ID_MAIL": "AKIAY6N7PIIVON4S",
+    "AWS_SECRET_ACCESS_KEY_MAIL": "pFwivKszfMsRGoR9xPjYSEOb1eN/yb9luR",
+    "ADMIN_APP_URL": "https://beta.test.io/",
+    "ADMIN_PUBLIC_URL": "https://beta.test.io/",
+    "environment": "development"
+  }
+  
