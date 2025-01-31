@@ -1,16 +1,17 @@
 const {School, User, Student} = require('../database/models/index.model');
-const { faker } = require('@faker-js/faker');
+//const { faker } = require('@faker-js/faker');
+const {Op} = require('sequelize');
 
  
 
 async function getStudentList(req, res) {
     try {
-        const { page = 1, limit = 10, name, grade_id, parent_id, school_id } = req.query;
+        const { page = 1, limit = 10, search, grade_id, parent_id, school_id } = req.query;
         const offset = (page - 1) * limit;
 
         // Build the filter conditions dynamically
         const whereCondition = {};
-        if (name) whereCondition.name = { [Op.like]: `%${name}%` };
+        if (search) whereCondition.name = { [Op.like]: `%${search}%` };
         if (grade_id) whereCondition.grade_id = grade_id;
         if (parent_id) whereCondition.parent_id = parent_id;
         if (school_id) whereCondition.school_id = school_id;
@@ -22,7 +23,6 @@ async function getStudentList(req, res) {
             limit: parseInt(limit),
             offset: parseInt(offset),
         });
-
         return res.status(200).json({
             message: 'Student data fetched successfully!',
             students: students,
