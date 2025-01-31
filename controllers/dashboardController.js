@@ -15,6 +15,9 @@ async function getUserDashboardData(req, res) {
         return res.status(200).json({
             message: 'Dashboard data fetched successfully!',
             data: user,
+            totalPaymentCurrentSession: "$50,000",
+            currentMonthTotalPayment: "$10,000",
+            todaysPayment: "$1,500"
         });
     } catch (error) {
         console.error(error);
