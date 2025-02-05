@@ -44,7 +44,13 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Serve images from a specific folder
-app.use('/public/', express.static('./public/Images'));
+app.use('/uploads', (req, res, next) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+    next();
+}, express.static(path.join(__dirname, 'uploads')));
+
 
 // Enable logging in development environment
 if (app.get('env') === 'development') {

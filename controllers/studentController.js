@@ -1,4 +1,5 @@
-const {School, User, Student} = require('../database/models/index.model');
+const errorBag = require('../helpers/common');
+const {School, User, Student, Grade} = require('../database/models/index.model');
 const {Op} = require('sequelize');
 const _ = require('lodash');
 
@@ -6,15 +7,31 @@ const _ = require('lodash');
 
 
 async function addStudent(req, res) {
+    console.log('req.body', req.body);
+    
+    const { error } = Student.studentValidate(req.body);
+    if (error) return res.status(422).send(errorBag(error));
+
     try {
-        const allowedFields = ['name', 'date_of_birth', 'grade_id', 'parent_id', 'school_id', 'address', 'note'];
+        const allowedFields = [
+            'name',
+            'date_of_birth',
+            'grade_id',
+            'parent_id',
+            'school_id',
+            'address',
+            'note',
+            'father_name',
+            'mother_name',
+            'contact_number',
+            'father_mobile',
+            'mother_mobile',
+        ];
         const studentData = _.pick(req.body, allowedFields);
 
-        // Validate required fields
-        if (!studentData.name || !studentData.date_of_birth || !studentData.school_id) {
-            return res.status(400).json({
-                message: 'Name, Date of Birth, and School ID are required fields!',
-            });
+        // Check if an image file is uploaded and store its path
+        if (req.files && req.files.image) {
+            studentData.image = `/uploads/student/images/${req.files.image[0].filename}`;
         }
 
         const student = await Student.create(studentData);
@@ -48,7 +65,12 @@ async function getStudentList(req, res) {
         // Fetch students with pagination and filtering
         const { count, rows: students } = await Student.findAndCountAll({
             where: whereCondition,
-            attributes: ['id', 'name', 'date_of_birth', 'grade_id', 'parent_id', 'school_id', 'address', 'note'],
+            include: [
+                {
+                    model: Grade, 
+                    attributes: ['id', 'grade_name'],
+                    as:'Grade' 
+                },],
             limit: parseInt(limit),
             offset: parseInt(offset),
             order: [['id', 'DESC']],
