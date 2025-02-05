@@ -36,16 +36,15 @@ async function addStudent(req, res) {
 
 async function getStudentList(req, res) {
     try {
-        const { page = 1, limit = 10, search, grade_id, parent_id, school_id } = req.query;
+        const { page = 1, limit = 10, search, grade_id, parent_id, school_id, student_id } = req.query;
         const offset = (page - 1) * limit;
-
         // Build the filter conditions dynamically
         const whereCondition = {};
         if (search) whereCondition.name = { [Op.like]: `%${search}%` };
         if (grade_id) whereCondition.grade_id = grade_id;
         if (parent_id) whereCondition.parent_id = parent_id;
         if (school_id) whereCondition.school_id = school_id;
-
+        if (student_id) whereCondition.id = student_id;
         // Fetch students with pagination and filtering
         const { count, rows: students } = await Student.findAndCountAll({
             where: whereCondition,
