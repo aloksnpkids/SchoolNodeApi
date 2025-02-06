@@ -11,5 +11,7 @@ let uploadLocal = MulterTrait.uploadLocalFields('student/images', [{
 
 router.post("/add", [auth, uploadLocal], studentController.addStudent);
 router.get("/list", [auth], studentController.getStudentList);
+router.get("/:id", [auth], studentController.getStudentById);
+router.put("/:id", [auth, uploadLocal], studentController.updateStudent);
 
 module.exports = router;

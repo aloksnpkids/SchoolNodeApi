@@ -23,7 +23,7 @@ app.use(helmet());
 
 // Enable CORS with specific settings
 app.use(cors({
-    origin: '*',
+    origin: '*',  // Make sure to allow all origins or specify the exact origin of your React app
     preflightContinue: true,
     methods: ['GET', 'POST', 'DELETE', 'UPDATE', 'PUT', 'PATCH', 'OPTIONS'],
     allowedHeaders: [
@@ -45,9 +45,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Serve images from a specific folder
 app.use('/uploads', (req, res, next) => {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+    res.setHeader('Access-Control-Allow-Origin', '*');  // Allow all origins
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');  // Allow GET and OPTIONS methods
+    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');  // Allow specific headers
     next();
 }, express.static(path.join(__dirname, 'uploads')));
 
