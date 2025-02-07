@@ -23,8 +23,8 @@ app.use(helmet());
 
 // Enable CORS with specific settings
 app.use(cors({
-    origin: '*',  // Make sure to allow all origins or specify the exact origin of your React app
-    preflightContinue: true,
+    origin: 'http://localhost:3000', // Allow your frontend origin
+    credentials: true, // Allow credentials (cookies, authorization headers)
     methods: ['GET', 'POST', 'DELETE', 'UPDATE', 'PUT', 'PATCH', 'OPTIONS'],
     allowedHeaders: [
         'Origin', 'X-Requested-With', 'content-disposition',
@@ -32,6 +32,14 @@ app.use(cors({
         'x-time-zone', 'x-hmac-token'
     ]
 }));
+
+// Explicitly handle preflight (OPTIONS) requests
+app.options('*', (req, res) => {
+    res.header("Access-Control-Allow-Origin", "http://localhost:3000");
+    res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+    res.header("Access-Control-Allow-Headers", "Content-Type, Authorization, x-auth-token");
+    res.status(200).send(); // Ensure 200 OK response
+});
 
 // Use body-parser middleware for parsing requests
 app.use(bodyParser.json());
@@ -44,13 +52,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Serve images from a specific folder
-app.use('/uploads', (req, res, next) => {
-    res.setHeader('Access-Control-Allow-Origin', '*');  // Allow all origins
-    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');  // Allow GET and OPTIONS methods
-    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');  // Allow specific headers
-    next();
-}, express.static(path.join(__dirname, 'uploads')));
-
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Enable logging in development environment
 if (app.get('env') === 'development') {
