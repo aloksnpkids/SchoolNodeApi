@@ -19,7 +19,7 @@ if (!config.get('JWT_PRIVATE_KEY')) {
 const app = express();
 
 // Add security headers with Helmet
-app.use(helmet());
+app.use(helmet({crossOriginResourcePolicy: false}));
 
 // Enable CORS with specific settings
 app.use(cors({
