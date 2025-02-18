@@ -1,12 +1,28 @@
 const { Op } = require('sequelize');
 const { User, StudentPayment, Student } = require('../database/models/index.model');
+const { createClient } = require('redis');
 
- 
+// Create and connect a Redis client
+const redisClient = createClient();
+redisClient.on('error', (err) => console.error('Redis Error:', err));
+(async () => {
+  await redisClient.connect();
+})();
 
 async function getUserDashboardData(req, res) {
     try {
+        const userId = req.user.id;
+        const cacheKey = `dashboard:${userId}`;
+
+        // Check if data is cached in Redis
+        const cachedData = await redisClient.get(cacheKey);
+        if (cachedData) {
+            console.log('Serving from cache');
+            return res.status(200).json(JSON.parse(cachedData));
+        }
+
         // Find the user by ID
-        const user = await User.findOne({ where: { id: req.user.id } });
+        const user = await User.findOne({ where: { id: userId } });
         if (!user) {
             return res.status(404).json({ message: 'User not found.' });
         }
@@ -44,14 +60,18 @@ async function getUserDashboardData(req, res) {
         // Get total student count
         const totalStudents = await Student.count();
 
-        return res.status(200).json({
+        const dashboardData = {
             message: 'Dashboard data fetched successfully!',
-            //data: user,
             totalPaymentCurrentSession: `₹${totalPaymentCurrentSession.toFixed(2)}`,
             currentMonthTotalPayment: `₹${currentMonthTotalPayment.toFixed(2)}`,
             todaysPayment: `₹${todaysPayment.toFixed(2)}`,
             totalStudents
-        });
+        };
+
+        // Cache the result in Redis for 5 minutes (300 seconds)
+        await redisClient.setEx(cacheKey, 300, JSON.stringify(dashboardData));
+
+        return res.status(200).json(dashboardData);
     } catch (error) {
         console.error(error);
         return res.status(500).json({
@@ -61,6 +81,4 @@ async function getUserDashboardData(req, res) {
     }
 }
   
-
-
 module.exports.getUserDashboardData = getUserDashboardData;
