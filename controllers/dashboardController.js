@@ -1,5 +1,6 @@
-const { Op } = require('sequelize');
-const { User, StudentPayment, Student } = require('../database/models/index.model');
+const { Op, fn, col, Sequelize } = require('sequelize');
+
+const { User, StudentPayment, Student, Grade } = require('../database/models/index.model');
 const { createClient } = require('redis');
 
 // Create and connect a Redis client
@@ -60,12 +61,29 @@ async function getUserDashboardData(req, res) {
         // Get total student count
         const totalStudents = await Student.count();
 
+
+        // Calculate total student fee per month
+        const totalStudentFeePerMonth = await Student.findAll({
+            attributes: [
+                [Sequelize.fn('SUM', Sequelize.col('Grade.grade_fee')), 'totalFee']
+            ],
+            include: [{
+                model: Grade,
+                as: 'Grade',
+                attributes: []
+            }],
+            raw: true
+        });
+
+        const totalFeePerMonth = totalStudentFeePerMonth[0]?.totalFee || 0;
+
         const dashboardData = {
             message: 'Dashboard data fetched successfully!',
             totalPaymentCurrentSession: `₹${totalPaymentCurrentSession.toFixed(2)}`,
             currentMonthTotalPayment: `₹${currentMonthTotalPayment.toFixed(2)}`,
             todaysPayment: `₹${todaysPayment.toFixed(2)}`,
-            totalStudents
+            totalStudents,
+            totalStudentFeePerMonth: `₹${totalFeePerMonth}`
         };
 
         // Cache the result in Redis for 5 minutes (300 seconds)
