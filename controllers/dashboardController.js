@@ -12,7 +12,7 @@ redisClient.on('error', (err) => console.error('Redis Error:', err));
 async function getUserDashboardData(req, res) {
     try {
         const userId = req.user.id;
-        const cacheKey = `dashboard:${userId}`;
+        const cacheKey = `dashboard_data`;
 
         // Check if data is cached in Redis
         const cachedData = await redisClient.get(cacheKey);
