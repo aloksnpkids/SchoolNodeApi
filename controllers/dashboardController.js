@@ -77,13 +77,17 @@ async function getUserDashboardData(req, res) {
 
         const totalFeePerMonth = totalStudentFeePerMonth[0]?.totalFee || 0;
 
+        const newAdmissionFeeTypeId = 2; // Assuming "New Admission" has an ID of 2
+        const admissionPaymentSum = await calculateAdmissionPaymentSum(newAdmissionFeeTypeId)
+
         const dashboardData = {
             message: 'Dashboard data fetched successfully!',
             totalPaymentCurrentSession: `₹${totalPaymentCurrentSession.toFixed(2)}`,
             currentMonthTotalPayment: `₹${currentMonthTotalPayment.toFixed(2)}`,
             todaysPayment: `₹${todaysPayment.toFixed(2)}`,
             totalStudents,
-            totalStudentFeePerMonth: `₹${totalFeePerMonth}`
+            totalStudentFeePerMonth: `₹${totalFeePerMonth}`,
+            currentMonthTotalAdmissionPayment: `₹${admissionPaymentSum.toFixed(2)}`,
         };
 
         // Cache the result in Redis for 5 minutes (300 seconds)
@@ -98,5 +102,31 @@ async function getUserDashboardData(req, res) {
         });
     }
 }
+
+
+
+
+const calculateAdmissionPaymentSum = async (feeTypeId) => {
+    const newAdmissionfeeTypeId = 2;
+    const admissionfeeDueTypeId = 3;
+    const now = new Date();
+    const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const currentMonthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    try {
+        const admissionPaymentSum = await StudentPayment.sum('amount', {
+            where: { 
+                payment_date: { [Op.between]: [currentMonthStart, currentMonthEnd] },
+                fee_type_id: { [Op.or]: [newAdmissionfeeTypeId, admissionfeeDueTypeId] } // Include both feeTypeId 2 and 3
+            }
+        }) || 0;
+
+        return admissionPaymentSum;
+    } catch (error) {
+        console.error('Error calculating admission payment sum:', error);
+        throw error;
+    }
+};
+
+
   
 module.exports.getUserDashboardData = getUserDashboardData;
