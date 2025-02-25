@@ -17,6 +17,11 @@ module.exports = (sequelize, DataTypes) => {
                 as: 'Grade', 
             });
 
+            Student.hasOne(models.StudentFeeStructure, {
+                foreignKey: "student_id",
+                as: "StudentFeeStructure",
+            });
+
         }
 
         static studentValidate(Validate) {

@@ -15,4 +15,9 @@ router.get("/list", [auth], studentController.getStudentList);
 router.get("/:id", [auth], studentController.getStudentById);
 router.put("/:id", [auth,invalidateCache, uploadLocal], studentController.updateStudent);
 
+router.post("fee/structure/add", [auth, invalidateCache], studentController.addStudentFeeStructure);
+router.put("fee/structure/:id", [auth, invalidateCache], studentController.updateStudentFeeStructure);
+router.get("/fee/structure/list", [auth], studentController.getStudentFeeStructureList);
+router.get("/current/fee", [auth], studentController.getCurrentStudentFee);
+
 module.exports = router;

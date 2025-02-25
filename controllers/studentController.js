@@ -1,5 +1,5 @@
 const errorBag = require('../helpers/common');
-const {School, User, Student, Grade} = require('../database/models/index.model');
+const {School, User, Student, Grade, StudentFeeStructure} = require('../database/models/index.model');
 const {Op} = require('sequelize');
 const _ = require('lodash');
 
@@ -55,6 +55,7 @@ async function getStudentList(req, res) {
     try {
         const { page = 1, limit = 10, search, grade_id, parent_id, school_id, student_id } = req.query;
         const offset = (page - 1) * limit;
+
         // Build the filter conditions dynamically
         const whereCondition = {};
         if (search) whereCondition.name = { [Op.like]: `%${search}%` };
@@ -62,21 +63,39 @@ async function getStudentList(req, res) {
         if (parent_id) whereCondition.parent_id = parent_id;
         if (school_id) whereCondition.school_id = school_id;
         if (student_id) whereCondition.id = student_id;
+
         // Fetch students with pagination and filtering
         const { count, rows: students } = await Student.findAndCountAll({
             where: whereCondition,
             include: [
                 {
-                    model: Grade, 
-                    attributes: ['id', 'grade_name'],
-                    as:'Grade' 
-                },],
+                    model: Grade,
+                    attributes: ["id", "grade_name"],
+                    as: "Grade",
+                },
+                {
+                    model: StudentFeeStructure,
+                    attributes: [
+                        "id",
+                        "monthly_fee",
+                        "session_start_month",
+                        "session_end_month",
+                        "session_start_year",
+                        "session_end_year",
+                        "concession_note",
+                    ],
+                    as: "StudentFeeStructure",
+                    where: { is_active: true }, // Only include active fee structures
+                    required: false, // Ensures students without an active fee structure are still included
+                },
+            ],
             limit: parseInt(limit),
             offset: parseInt(offset),
-            order: [['id', 'DESC']],
+            order: [["id", "DESC"]],
         });
+
         return res.status(200).json({
-            message: 'Student data fetched successfully!',
+            message: "Student data fetched successfully!",
             students: students,
             totalPages: Math.ceil(count / limit),
             currentPage: parseInt(page),
@@ -85,7 +104,7 @@ async function getStudentList(req, res) {
     } catch (error) {
         console.error(error);
         return res.status(500).json({
-            message: 'Something went wrong!',
+            message: "Something went wrong!",
             error: error.message,
         });
     }
@@ -177,8 +196,159 @@ async function updateStudent(req, res) {
 }
 
 
+/**
+ * Add a new Student Fee Structure
+ */
+async function addStudentFeeStructure(req, res) {
+    try {
+        const { student_id, grade_id, monthly_fee, session_start_month, session_end_month, session_start_year, session_end_year, concession_note } = req.body;
+
+        if (!student_id || !grade_id || !monthly_fee || !session_start_month || !session_end_month || !session_start_year || !session_end_year) {
+            return res.status(400).json({ message: "Missing required fields" });
+        }
+
+        // Insert the new fee structure
+        const studentFee = await StudentFeeStructure.create({
+            student_id,
+            grade_id,
+            monthly_fee,
+            session_start_month,
+            session_end_month,
+            session_start_year,
+            session_end_year,
+            concession_note
+        });
+
+        return res.status(201).json({ message: "Student fee structure added successfully", data: studentFee });
+    } catch (error) {
+        console.error("Error adding student fee structure:", error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+/**
+ * Update an existing Student Fee Structure
+ */
+async function updateStudentFeeStructure (req, res) {
+    try {
+        const { id } = req.params;
+        const { monthly_fee, session_start_month, session_end_month, session_start_year, session_end_year, concession_note } = req.body;
+
+        // Check if record exists
+        const studentFee = await StudentFeeStructure.findByPk(id);
+        if (!studentFee) {
+            return res.status(404).json({ message: "Student fee structure not found" });
+        }
+
+        // Update fields
+        await studentFee.update({
+            monthly_fee,
+            session_start_month,
+            session_end_month,
+            session_start_year,
+            session_end_year,
+            concession_note
+        });
+
+        return res.status(200).json({ message: "Student fee structure updated successfully", data: studentFee });
+    } catch (error) {
+        console.error("Error updating student fee structure:", error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+
+/**
+ * Get Student Fee Structure List (With Pagination)
+ */
+async function getStudentFeeStructureList(req, res) {
+    try {
+        const { page = 1, limit = 10 } = req.query;
+        const offset = (page - 1) * limit;
+
+        // Fetch all student fee structures with pagination
+        const { count, rows: studentFees } = await StudentFeeStructure.findAndCountAll({
+            include: [
+                {
+                    model: Student,
+                    attributes: ['id', 'name'],
+                    as: 'Student'
+                },
+                {
+                    model: Grade,
+                    attributes: ['id', 'grade_name'],
+                    as: 'Grade'
+                }
+            ],
+            limit: parseInt(limit),
+            offset: parseInt(offset),
+            order: [['session_start_year', 'DESC']]
+        });
+
+        return res.status(200).json({
+            message: 'Student Fee Structure list fetched successfully!',
+            studentFees,
+            totalPages: Math.ceil(count / limit),
+            currentPage: parseInt(page),
+            totalRecords: count
+        });
+    } catch (error) {
+        console.error("Error fetching student fee structure list:", error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+}
+
+/**
+ * Get Active Student Fee Structure (Only One Entry)
+ */
+async function getCurrentStudentFee(req, res) {
+    try {
+        const { student_id } = req.query;
+        if (!student_id) {
+            return res.status(400).json({ message: "Student ID is required!" });
+        }
+
+        // Fetch the active fee structure for the student
+        const studentFee = await StudentFeeStructure.findOne({
+            where: {
+                student_id,
+                is_active: true // Fetching only the active fee structure
+            },
+            include: [
+                {
+                    model: Student,
+                    attributes: ['id', 'name'],
+                    as: 'Student'
+                },
+                {
+                    model: Grade,
+                    attributes: ['id', 'grade_name'],
+                    as: 'Grade'
+                }
+            ]
+        });
+
+        if (!studentFee) {
+            return res.status(404).json({ message: "No active fee structure found for this student!" });
+        }
+
+        return res.status(200).json({
+            message: 'Active student fee structure fetched successfully!',
+            studentFee
+        });
+    } catch (error) {
+        console.error("Error fetching active student fee structure:", error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+}
+
+
 
 module.exports.getStudentList = getStudentList;
 module.exports.addStudent = addStudent;
 module.exports.getStudentById = getStudentById;
 module.exports.updateStudent = updateStudent;
+module.exports.addStudentFeeStructure = addStudentFeeStructure;
+module.exports.updateStudentFeeStructure = updateStudentFeeStructure;
+module.exports.getStudentFeeStructureList = getStudentFeeStructureList;
+module.exports.getCurrentStudentFee = getCurrentStudentFee;
