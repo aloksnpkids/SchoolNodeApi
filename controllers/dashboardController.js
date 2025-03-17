@@ -58,9 +58,17 @@ async function getUserDashboardData(req, res) {
             }
         }) || 0;
 
+        // Get total payments for last month
+        const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+        const lastMonthTotalPayment = await StudentPayment.sum('amount', {
+            where: { 
+                payment_date: { [Op.between]: [lastMonthStart, lastMonthEnd] }
+            }
+        }) || 0;
+
         // Get total student count
         const totalStudents = await Student.count();
-
 
         // Calculate total student fee per month
         const totalStudentFeePerMonth = await Student.findAll({
@@ -78,13 +86,14 @@ async function getUserDashboardData(req, res) {
         const totalFeePerMonth = totalStudentFeePerMonth[0]?.totalFee || 0;
 
         const newAdmissionFeeTypeId = 2; // Assuming "New Admission" has an ID of 2
-        const admissionPaymentSum = await calculateAdmissionPaymentSum(newAdmissionFeeTypeId)
+        const admissionPaymentSum = await calculateAdmissionPaymentSum(newAdmissionFeeTypeId);
 
         const dashboardData = {
             message: 'Dashboard data fetched successfully!',
             totalPaymentCurrentSession: `₹${totalPaymentCurrentSession.toFixed(2)}`,
             currentMonthTotalPayment: `₹${currentMonthTotalPayment.toFixed(2)}`,
             todaysPayment: `₹${todaysPayment.toFixed(2)}`,
+            lastMonthTotalPayment: `₹${lastMonthTotalPayment.toFixed(2)}`, // Added last month's total payment
             totalStudents,
             totalStudentFeePerMonth: `₹${totalFeePerMonth}`,
             currentMonthTotalAdmissionPayment: `₹${admissionPaymentSum.toFixed(2)}`,
@@ -102,6 +111,7 @@ async function getUserDashboardData(req, res) {
         });
     }
 }
+
 
 
 
