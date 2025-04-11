@@ -84,6 +84,9 @@ async function getUserDashboardData(req, res) {
                 as: 'Grade',
                 attributes: []
             }],
+            where: {
+                status: '1'
+            },
             raw: true
         });
 
