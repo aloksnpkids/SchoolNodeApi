@@ -342,6 +342,29 @@ async function getCurrentStudentFee(req, res) {
     }
 }
 
+async function toggleStudentStatus(req, res) {
+    const { id } = req.params;
+    if (!id) return res.status(400).json({ message: 'Student ID is required!' });
+
+    try {
+        const student = await Student.findByPk(id);
+        if (!student) return res.status(404).json({ message: 'Student not found!' });
+
+        const newStatus = student.status == '1' ? '0' : '1';
+        await student.update({ status: newStatus });
+
+        return res.status(200).json({
+            message: `Student status updated successfully! New status: ${newStatus}`,
+            student,
+        });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            message: 'Something went wrong!',
+            error: error.message,
+        });
+    }
+}
 
 
 module.exports.getStudentList = getStudentList;
@@ -352,3 +375,4 @@ module.exports.addStudentFeeStructure = addStudentFeeStructure;
 module.exports.updateStudentFeeStructure = updateStudentFeeStructure;
 module.exports.getStudentFeeStructureList = getStudentFeeStructureList;
 module.exports.getCurrentStudentFee = getCurrentStudentFee;
+module.exports.toggleStudentStatus = toggleStudentStatus;

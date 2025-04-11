@@ -67,9 +67,13 @@ async function getUserDashboardData(req, res) {
             }
         }) || 0;
 
-        // Get total student count
-        const totalStudents = await Student.count();
-
+       // Get total student count where status == "1"
+       const totalStudents = await Student.count({
+       where: {
+       status: "1"
+       }
+       });
+       console.log('totalStudents',totalStudents);
         // Calculate total student fee per month
         const totalStudentFeePerMonth = await Student.findAll({
             attributes: [

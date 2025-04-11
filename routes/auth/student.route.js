@@ -19,5 +19,7 @@ router.post("fee/structure/add", [auth, invalidateCache], studentController.addS
 router.put("fee/structure/:id", [auth, invalidateCache], studentController.updateStudentFeeStructure);
 router.get("/fee/structure/list", [auth], studentController.getStudentFeeStructureList);
 router.get("/current/fee", [auth], studentController.getCurrentStudentFee);
+router.patch("/toggle-status/:id", [auth, invalidateCache], studentController.toggleStudentStatus);
+
 
 module.exports = router;

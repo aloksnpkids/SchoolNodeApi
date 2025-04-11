@@ -133,6 +133,15 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.TEXT,
             allowNull: true
         },
+        status: {
+            type: DataTypes.ENUM('0', '1'),
+            allowNull: false,
+            defaultValue: '1'
+        },
+        left_school: {
+            type: DataTypes.STRING,
+            allowNull: true,
+        },
         deletedAt: {
             type: DataTypes.DATE,
             allowNull: true
@@ -143,7 +152,7 @@ module.exports = (sequelize, DataTypes) => {
         modelName: 'Student',
     });
 
-    //Student.sync({alter:true}) // Uncomment this line if you want to sync the model with the database
+    Student.sync({alter:true}) // Uncomment this line if you want to sync the model with the database
 
     return Student;
 };
